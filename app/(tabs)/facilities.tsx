@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, ScrollView, Dimensions, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, ScrollView, Dimensions, Platform, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { Search, Filter, MapPin, Star, Phone, Navigation2 } from 'lucide-react-native';
+import { Search, Filter, MapPin, Star, Phone, Navigation2, Clock, Info } from 'lucide-react-native';
 import * as Location from 'expo-location';
 import { useTranslation } from '@/hooks/useTranslation';
 import Colors from '@/constants/Colors';
@@ -32,9 +32,12 @@ const FAKE_FACILITIES = [
     phone: '33 825 40 30',
     rating: 4.5,
     type: 'hospital',
+    image: 'https://images.pexels.com/photos/668300/pexels-photo-668300.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
     latitude: 14.7324,
     longitude: -17.4469,
-    specialties: ['emergency', 'pediatrics', 'surgery']
+    specialties: ['emergency', 'pediatrics', 'surgery'],
+    openingHours: '24/7',
+    distance: '2.3 km'
   },
   {
     id: 2,
@@ -43,9 +46,12 @@ const FAKE_FACILITIES = [
     phone: '33 864 50 70',
     rating: 4.2,
     type: 'clinic',
+    image: 'https://images.pexels.com/photos/247786/pexels-photo-247786.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
     latitude: 14.6901,
     longitude: -17.4558,
-    specialties: ['cardiology', 'gynecology']
+    specialties: ['cardiology', 'gynecology'],
+    openingHours: '08:00 - 20:00',
+    distance: '1.5 km'
   },
   {
     id: 3,
@@ -54,9 +60,12 @@ const FAKE_FACILITIES = [
     phone: '33 820 72 82',
     rating: 3.8,
     type: 'center',
+    image: 'https://images.pexels.com/photos/236380/pexels-photo-236380.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
     latitude: 14.7486,
     longitude: -17.4843,
-    specialties: ['general', 'maternity']
+    specialties: ['general', 'maternity'],
+    openingHours: '08:00 - 18:00',
+    distance: '3.1 km'
   },
   {
     id: 4,
@@ -65,9 +74,12 @@ const FAKE_FACILITIES = [
     phone: '33 820 02 06',
     rating: 4.0,
     type: 'hospital',
+    image: 'https://images.pexels.com/photos/263402/pexels-photo-263402.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
     latitude: 14.7219,
     longitude: -17.4978,
-    specialties: ['emergency', 'orthopedics']
+    specialties: ['emergency', 'orthopedics'],
+    openingHours: '24/7',
+    distance: '4.2 km'
   },
   {
     id: 5,
@@ -76,9 +88,12 @@ const FAKE_FACILITIES = [
     phone: '33 869 80 80',
     rating: 4.7,
     type: 'clinic',
+    image: 'https://images.pexels.com/photos/1692693/pexels-photo-1692693.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
     latitude: 14.7532,
     longitude: -17.5031,
-    specialties: ['dermatology', 'ophthalmology']
+    specialties: ['dermatology', 'ophthalmology'],
+    openingHours: '09:00 - 19:00',
+    distance: '5.0 km'
   }
 ];
 
@@ -91,6 +106,7 @@ export default function FacilitiesScreen() {
   const [selectedFacility, setSelectedFacility] = useState<null | any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
   const mapRef = useRef<any>(null);
 
   const specialties = [
@@ -98,6 +114,8 @@ export default function FacilitiesScreen() {
     { name: 'pediatrics', label: t('facilities.filters.pediatrics') },
     { name: 'cardiology', label: t('facilities.filters.cardiology') },
     { name: 'maternity', label: t('facilities.filters.maternity') },
+    { name: 'surgery', label: t('facilities.filters.surgery') },
+    { name: 'general', label: t('facilities.filters.general') },
   ];
 
   useEffect(() => {
@@ -194,7 +212,9 @@ export default function FacilitiesScreen() {
             } : INITIAL_REGION}
             showsUserLocation={!!location}
           >
-            {filteredFacilities.map((facility) => (
+            {filtere
+
+dFacilities.map((facility) => (
               <Marker
                 key={facility.id}
                 coordinate={{
@@ -220,42 +240,55 @@ export default function FacilitiesScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('facilities.title')}</Text>
         <View style={styles.searchContainer}>
-          <Search size={20} color={Colors.gray[400]} style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder={t('facilities.searchPlaceholder')}
-            placeholderTextColor={Colors.gray[400]}
-            value={searchText}
-            onChangeText={setSearchText}
-          />
+          <View style={styles.searchInputContainer}>
+            <Search size={20} color={Colors.gray[400]} style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder={t('facilities.searchPlaceholder')}
+              placeholderTextColor={Colors.gray[400]}
+              value={searchText}
+              onChangeText={setSearchText}
+            />
+          </View>
+          <TouchableOpacity 
+            style={[
+              styles.filterButton,
+              showFilters && styles.filterButtonActive
+            ]}
+            onPress={() => setShowFilters(!showFilters)}
+          >
+            <Filter size={20} color={showFilters ? Colors.primary[600] : Colors.gray[500]} />
+          </TouchableOpacity>
         </View>
       </View>
       
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filtersContainer}
-      >
-        {specialties.map((specialty, index) => (
-          <TouchableOpacity
-            key={specialty.name}
-            style={[
-              styles.filterButton,
-              selectedFilters.includes(specialty.name) && styles.filterButtonActive
-            ]}
-            onPress={() => toggleFilter(specialty.name)}
-          >
-            <Text 
+      {showFilters && (
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filtersContainer}
+        >
+          {specialties.map((specialty, index) => (
+            <TouchableOpacity
+              key={specialty.name}
               style={[
-                styles.filterButtonText,
-                selectedFilters.includes(specialty.name) && styles.filterButtonTextActive
+                styles.filterChip,
+                selectedFilters.includes(specialty.name) && styles.filterChipActive
               ]}
+              onPress={() => toggleFilter(specialty.name)}
             >
-              {specialty.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+              <Text 
+                style={[
+                  styles.filterChipText,
+                  selectedFilters.includes(specialty.name) && styles.filterChipTextActive
+                ]}
+              >
+                {specialty.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
 
       {renderMap()}
 
@@ -281,31 +314,60 @@ export default function FacilitiesScreen() {
                 ]}
                 onPress={() => focusFacility(facility)}
               >
-                <View style={styles.facilityHeader}>
-                  <Text style={styles.facilityName}>{facility.name}</Text>
-                  <View style={styles.ratingContainer}>
-                    <Star size={14} color={Colors.warning[500]} fill={Colors.warning[500]} />
-                    <Text style={styles.ratingText}>{facility.rating}</Text>
-                  </View>
-                </View>
+                <Image 
+                  source={{ uri: facility.image }}
+                  style={styles.facilityImage}
+                />
                 
-                <View style={styles.facilityDetails}>
-                  <View style={styles.detailRow}>
-                    <MapPin size={16} color={Colors.gray[500]} />
-                    <Text style={styles.detailText}>{facility.address}</Text>
+                <View style={styles.facilityContent}>
+                  <View style={styles.facilityHeader}>
+                    <Text style={styles.facilityName}>{facility.name}</Text>
+                    <View style={styles.ratingContainer}>
+                      <Star size={14} color={Colors.warning[500]} fill={Colors.warning[500]} />
+                      <Text style={styles.ratingText}>{facility.rating}</Text>
+                    </View>
                   </View>
                   
-                  <View style={styles.detailRow}>
-                    <Phone size={16} color={Colors.gray[500]} />
-                    <Text style={styles.detailText}>{facility.phone}</Text>
+                  <View style={styles.facilityDetails}>
+                    <View style={styles.detailRow}>
+                      <MapPin size={16} color={Colors.gray[500]} />
+                      <Text style={styles.detailText}>
+                        {facility.address}
+                        <Text style={styles.distanceText}> • {facility.distance}</Text>
+                      </Text>
+                    </View>
+                    
+                    <View style={styles.detailRow}>
+                      <Clock size={16} color={Colors.gray[500]} />
+                      <Text style={styles.detailText}>{facility.openingHours}</Text>
+                    </View>
+                    
+                    <View style={styles.detailRow}>
+                      <Phone size={16} color={Colors.gray[500]} />
+                      <Text style={styles.detailText}>{facility.phone}</Text>
+                    </View>
                   </View>
-                </View>
-                
-                <View style={styles.facilityCta}>
-                  <TouchableOpacity style={styles.directionsButton}>
-                    <Navigation2 size={16} color={Colors.primary[600]} />
-                    <Text style={styles.directionsButtonText}>{t('facilities.getDirections')}</Text>
-                  </TouchableOpacity>
+                  
+                  <View style={styles.specialtiesContainer}>
+                    {facility.specialties.map((specialty) => (
+                      <View key={specialty} style={styles.specialtyChip}>
+                        <Text style={styles.specialtyText}>
+                          {t(`facilities.filters.${specialty}`)}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                  
+                  <View style={styles.facilityCta}>
+                    <TouchableOpacity style={styles.infoButton}>
+                      <Info size={16} color={Colors.primary[600]} />
+                      <Text style={styles.infoButtonText}>{t('facilities.moreInfo')}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.directionsButton}>
+                      <Navigation2 size={16} color={Colors.white} />
+                      <Text style={styles.directionsButtonText}>{t('facilities.getDirections')}</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </TouchableOpacity>
             </Animated.View>
@@ -337,6 +399,12 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
+  },
+  searchInputContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: Colors.white,
     borderRadius: 12,
     paddingHorizontal: 16,
@@ -354,12 +422,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.text.primary,
   },
+  filterButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: Colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.gray[200],
+  },
+  filterButtonActive: {
+    backgroundColor: Colors.primary[50],
+    borderColor: Colors.primary[200],
+  },
   filtersContainer: {
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 8,
   },
-  filterButton: {
+  filterChip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 16,
@@ -368,16 +450,16 @@ const styles = StyleSheet.create({
     borderColor: Colors.gray[300],
     marginRight: 8,
   },
-  filterButtonActive: {
+  filterChipActive: {
     backgroundColor: Colors.primary[600],
     borderColor: Colors.primary[600],
   },
-  filterButtonText: {
+  filterChipText: {
     fontFamily: 'Poppins-Medium',
     fontSize: 13,
     color: Colors.text.secondary,
   },
-  filterButtonTextActive: {
+  filterChipTextActive: {
     color: Colors.white,
   },
   mapContainer: {
@@ -421,7 +503,6 @@ const styles = StyleSheet.create({
   },
   facilitiesListContainer: {
     flex: 1,
-    paddingHorizontal: 16,
     paddingTop: 4,
     paddingBottom: 16,
   },
@@ -430,15 +511,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.text.secondary,
     marginBottom: 12,
+    paddingHorizontal: 16,
   },
   facilitiesList: {
-    paddingRight: 16,
+    paddingHorizontal: 16,
   },
   facilityCard: {
-    width: width * 0.75,
+    width: width * 0.85,
     backgroundColor: Colors.white,
     borderRadius: 12,
-    padding: 16,
     marginRight: 12,
     shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
@@ -447,10 +528,19 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: Colors.gray[200],
+    overflow: 'hidden',
   },
   facilityCardSelected: {
     borderColor: Colors.primary[600],
     borderWidth: 2,
+  },
+  facilityImage: {
+    width: '100%',
+    height: 150,
+    resizeMode: 'cover',
+  },
+  facilityContent: {
+    padding: 16,
   },
   facilityHeader: {
     flexDirection: 'row',
@@ -480,7 +570,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   facilityDetails: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   detailRow: {
     flexDirection: 'row',
@@ -494,25 +584,62 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     flexShrink: 1,
   },
+  distanceText: {
+    color: Colors.primary[600],
+  },
+  specialtiesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  specialtyChip: {
+    backgroundColor: Colors.gray[100],
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  specialtyText: {
+    fontFamily: 'Poppins-Medium',
+    fontSize: 12,
+    color: Colors.text.secondary,
+  },
   facilityCta: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    gap: 12,
   },
-  directionsButton: {
+  infoButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 16,
     backgroundColor: Colors.primary[50],
     borderRadius: 8,
     borderWidth: 1,
     borderColor: Colors.primary[100],
   },
-  directionsButtonText: {
+  infoButtonText: {
     fontFamily: 'Poppins-Medium',
     fontSize: 14,
     color: Colors.primary[600],
+    marginLeft: 8,
+  },
+  directionsButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: Colors.primary[600],
+    borderRadius: 8,
+  },
+  directionsButtonText: {
+    fontFamily: 'Poppins-Medium',
+    fontSize: 14,
+    color: Colors.white,
     marginLeft: 8,
   },
 });

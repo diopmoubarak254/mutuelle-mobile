@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Bell, Calendar, CreditCard, FileText, CircleAlert as AlertCircle, Shield, FilePlus } from 'lucide-react-native';
+import { Bell, Calendar, CreditCard, FileText, AlertCircle, Shield, FilePlus } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import Colors from '@/constants/Colors';
@@ -21,9 +21,9 @@ export default function HomeScreen() {
   const [coveragePercent, setCoveragePercent] = useState(75);
   const [nextPaymentDue, setNextPaymentDue] = useState(new Date(Date.now() + 15 * 24 * 60 * 60 * 1000));
   const [quickActions, setQuickActions] = useState([
-    { id: 1, name: t('home.payContribution'), icon: CreditCard, color: Colors.primary[500] },
-    { id: 2, name: t('home.makeRequest'), icon: FilePlus, color: Colors.secondary[500] },
-    { id: 3, name: t('home.viewDocuments'), icon: FileText, color: Colors.tertiary[500] },
+    { id: 1, name: t('home.payContribution'), icon: CreditCard, color: Colors.primary[500], route: '/payment' },
+    { id: 2, name: t('home.makeRequest'), icon: FilePlus, color: Colors.secondary[500], route: '/requests/new' },
+    { id: 3, name: t('home.viewDocuments'), icon: FileText, color: Colors.tertiary[500], route: '/documents' },
   ]);
 
   useEffect(() => {
@@ -140,11 +140,7 @@ export default function HomeScreen() {
             >
               <TouchableOpacity 
                 style={[styles.quickActionButton, { backgroundColor: action.color }]}
-                onPress={() => {
-                  if (action.id === 1) router.push('/payment');
-                  if (action.id === 2) router.push('/requests/new');
-                  if (action.id === 3) router.push('/documents');
-                }}
+                onPress={() => router.push(action.route)}
               >
                 <action.icon color={Colors.white} size={24} />
               </TouchableOpacity>
